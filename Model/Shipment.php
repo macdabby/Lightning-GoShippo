@@ -12,13 +12,28 @@ class Shipment {
     const SELECTION_METHOD_LEAST = 1;
 
     protected $privateKey = '';
-    protected $shipmentData;
 
+    /**
+     * @var ShipmentData
+     */
+    protected $shipmentData;
+    protected $labelResult;
+
+    protected $rateList;
+
+    /**
+     * Shipment constructor.
+     *
+     * @param ShipmentData $shipmentData
+     */
     public function __construct($shipmentData) {
         $this->privateKey = Configuration::get('goshippo.private_token');
         $this->shipmentData = $shipmentData;
     }
 
+    /**
+     * Send shipment data and get the rate list.
+     */
     public function create() {
         $client = new RestClient(static::ENDPOINT);
         $client->setHeader('Authorization', 'ShippoToken ' . $this->privateKey);
@@ -35,6 +50,14 @@ class Shipment {
         $this->rateList = $client->getResults();
     }
 
+    /**
+     * Charge and generate the shipping label.
+     *
+     * @param array $providers
+     *   A list of approved shipping providers.
+     * @param integer $method
+     *   Which method to use to select the best shipping option.
+     */
     public function charge($providers = null, $method = self::SELECTION_METHOD_LEAST) {
         // Find the correct provider
         $selectedOption = null;
@@ -65,9 +88,15 @@ class Shipment {
         $this->labelResult = $client->getResults();
     }
 
+    /**
+     * Get the shipping label URL.
+     *
+     * @return bool|string
+     */
     public function getLabelURL() {
         if (empty($this->labelResult)) {
             Output::error('There is no shipping label');
+            return false;
         } else {
             return $this->labelResult['label_url'];
         }
