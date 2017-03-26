@@ -91,7 +91,7 @@ class Label extends Page {
             /* @var LineItem $item */
             $item->markFulfilled();
         }
-        $order->markFullfilled();
+        $order->markFulfilled();
 
         // Redirect.
         Navigation::redirect('/admin/orders', $redirect_params);
